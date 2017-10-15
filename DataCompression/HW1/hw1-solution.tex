@@ -1,0 +1,212 @@
+\documentclass[12pt]{assignment}
+
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, left=2cm, top=2cm, right=2cm, bottom=2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\course{CS698D Topics in Data Compression}
+\title{HOMEWORK-1}
+\author{Hemant Kumar 17111018 }
+\date{\today}
+
+
+% math mode only commands
+\newcommand{\half}{\frac{1}{2}}
+\newcommand{\rangeX}{\mathcal{R}_X}
+\newcommand{\rangeY}{\mathcal{R}_Y}
+\newcommand{\rangeZ}{\mathcal{R}_Z}
+\newcommand{\mimplies}{\implies&&}
+\newcommand{\mpipe}{|}
+
+\begin{document}
+
+\maketitle
+
+
+\problem{
+    Show that the sequence $x =$ 0 1 00 01 10 11 000 \ldots{} consisting of the concatenation of the binary strings in standard enumeration order, cannot be compressed by the LZ78 compressor (i.e. show that the compression ratio $\rho(x)$ is 1).
+}
+
+\solution{
+    The sequence $x =$ 0 1 00 01 10 11 000 \ldots{} will have the LZ78 phrases as
+    \begin{center}
+        $\mathcal{P} = \lambda$, 0, 1, 00, 01, 10, 11, 000, 001, 010, 011, 100, 101, 110, 111, $\ldots$
+    \end{center}
+
+    The LZ78 phrases $\mathcal{P}$ will be encoded as:
+    $$\mathcal{E} = \langle\lambda\rangle, \langle0,0\rangle, \langle0,1\rangle, \langle1,0\rangle, \langle1,1\rangle,  \ldots$$
+    The crux of the proof is to observe that $j^{th}$ phrase (except first three and probably the last) can be encoded as $\left\langle \left\lfloor \frac{j-1}{2} \right\rfloor,\ a\right\rangle$, where $a \in \{0,1\}$.\newpar The size of such an encoded phrase will be $log\left(2\left\lfloor\frac{j-1}{2}\right\rfloor+1\right) = j-1$.
+    \newpar
+	The input can be partitioned in three parts, a number of saturated\footnote{group having all the strings of that length in lexicographical order} groups of phrases with phrase length 1 to k, a unsaturated\footnote{group having the strings in lexicographical order but not all of that length} group of phrases of phrase length $k+1$, and last phrase. Let $n$ be the number of input bits and $p$ be the number of LZ78 phrases in the input. Then, $n$ can be written as $$n=\sum_{m=1}^k m2^m + (k+1)l + \delta$$ $$p=\sum_{i=1}^k2^m + l + 1 $$ where $0\leq l < 2^{k+1}$ is the count of strings in next unsaturated group, and $\delta < k+1$ is length of last phrase.
+	\newpar
+    For example $n = 24$,
+    \begin{tabular}{ | l | l | l | }
+        \hline
+        0 1 00 01 10 11 & 000 001 010 011 & 10\\
+        saturated & unsaturated & last phrase \\
+        \hline
+    \end{tabular}, $k=2$, $l=4$, $\delta=2$, and $p=11$.
+    \newpar
+    As the ecoding of the phrases in saturated and unsaturated group will have the same encoding as described earlier and last phrase will have encoding $\left\langle m, a\right\rangle$, where $a\in\{0,1\}^n$ and $m<n-(k+1)l$, so the encoded phrase will have length $k$.\newpar
+
+    Let's prove the $\rho(x)$ for the two extreme cases,  let $\mathcal{L}$ is the length of compressed output:
+    \begin{enumerate}
+		\item the input is saturated, means $l=0$ and $\delta=0$ \newpar
+			then,
+			$$n=\sum_{i=1}^k m2^m = (k-1)2^{k+1}+2$$
+			$$p=\sum_{i=1}^k 2^m = 2^{k+1}-1$$ \newpar
+			$$\mathcal{L} = \sum_{i=1}^{p}\log(i-1) = \log\left(\prod_{i=2}^p (i-1)\right) = \log((p-1)!) = (p-1)(\log(p-1)-log(e))$$
+			$$[\because Strling's Approximation,\ n! \simeq \sqrt{2ne}\log\left(\frac{n}{e}\right),\ \log(n!) \simeq \log(\sqrt{2ne}) + n\log(n) - n\log(e) \simeq n\log\left(\frac{n}{e}\right)]$$
+
+			\begin{align*}
+				\rho(x) &= \lim_{n \rightarrow \infty} \rho(x[1\ldots n]) = \lim_{k \rightarrow \infty}\frac{\mathcal{L}}{n}\\
+				&= \lim_{k \rightarrow \infty} \frac{(2^{k+1}-2)(\log(2^{k+1}-2) - \log(e))}{(k-1)2^{k+1}+2}\\
+				&= \lim_{k \rightarrow \infty} \frac{(k+1)2^{k+1}}{(k-1)2^{k+1}-2} && \text{appoximating numerator for large $k$ values}\\
+				&= 1 && \text{both numerator and denominator}\\
+				& && \text{are asymptotically same}\\
+			\end{align*}
+
+		\item the input is just 1 bit short from being saturated, means $l=2^{k+1}-1$ and $\delta=k$ \newpar
+		then,
+		$$n=\sum_{i=1}^km2^m+(2^{k+1}-1)(k+1) + k = k2^{k+2}+1$$
+		$$p=\sum_{i=1}^k2^m + 2^{k+1}-1 + 1 = 2^{k+2}-2$$
+		$$\mathcal{L}=\sum_{i=1}^{p-1}\log(i-1)+k = (p-2)(\log(p-2)-\log(e)) - k$$
+
+		\begin{align*}
+			\rho(x) &= \lim_{n \rightarrow \infty} \rho(x[1\ldots n]) = \lim_{k \rightarrow \infty}\frac{\mathcal{L}}{n}\\
+			&= \lim_{k \rightarrow \infty} \frac{(2^{k+2}-4)(\log(2^{k+2}-4)-\log(e)) - k}{k2^{k+2}+1}\\
+			&= \lim_{k \rightarrow \infty} \frac{(k+2)2^{k+2}-k}{k2^{k+2}+1} &&\text{appoximating the numerator for large $k$ values}\\
+			&= 1 && \text{both numerator and denominator}\\
+			& &&\text{are asymptotically same}
+		\end{align*}
+    \end{enumerate}
+	With both the extreme cases, the compressibility of $x$, $\rho(x)$, is 1. Therefore, the given sequence $x$ cannot be compressed by LZ78.
+}
+
+\problem{
+    Show that the sequence
+    \begin{align*}
+    y = &0,\\
+    &01,\\
+    &010,\\
+    &0100,\\
+    &01000,\\
+    &010001,\\
+    &...
+    \end{align*}
+    where the $n^{th}$ row is the first $n$ bits of the sequence $x$ in Question 1, has finite-state compressibility 1.
+}
+\solution{
+	As we know that the Champernowne Constant, the sequence $x$, is a normal number. We have to give the reduction from Champernowne constant to given sequnce $y$ to prove that $y$ is a normal number.
+}
+
+\problem{
+    Show that $\rho_{LZ}(y) = 0$. This shows that in addition to Lempel Ziv attaining at least as good a compressibility as information-lossless finite-state compressors, in some cases, it is strictly more powerful - $y$ is a sequence which no information-lossless finite-state compressor can compress, but LZ78 can.
+}
+\solution{
+    Any prefix of $y_n$ of size $n$ of $y$ can be parsed in $j+1$ phrases such that $n = \frac{j(j+1)}{2} + \delta$, where $\delta < (j+1)$.\newpar
+    The first $j$ phrase of $y_n$ have the LZ78 encoding $\left\langle j-1, a\right\rangle,\ a \in \{0,1\}$, and each such encoding will have bit length $\left\lceil\log(j-1)\right\rceil + 1$. The last phrase will have encoding $\left\langle k, a\right\rangle,\ a \in \{0,1\}$ and $k < j-1$ if $\delta \neq 0$.\newpar
+    The compression ratio of $y_n$,
+
+    \begin{align*}
+    \rho_{LZ}(y_n) &= \frac{\sum\limits_{i=1}^{j}\left\{\left\lceil\log(i-1)\right\rceil + 1 \right\}+ \left\lceil\log(k)\right\rceil + 1}{\frac{j(j+1)}{2} + \delta} \\
+    &\text{using maximum values for ceils, max value of $k$ and min value of $\delta, \delta \neq 0$}\\
+    & \leq \frac{\sum\limits_{i=1}^{j}\left\{\log(i-1) + 2 \right\}+ \log(j-1) + 2}{\frac{j(j+1)}{2} + 1} \\
+    & \leq \frac{\log(j-1!) + 2j + \log(j-1) + 2}{\frac{j(j+1)}{2} + 1} \\
+    &\text{using Strling's approximation for } h! = \sqrt{2\pi h}\left(\frac{h}{e}\right)^{h} \\
+    & \leq \frac{ 2j + \frac{1}{2}\log(2\pi (j-1)) + (j-1)(\log(j-1) - log(e)) + \log(j-1) + 2 }{\frac{j(j+1)}{2} + 1} \\
+    & \leq \frac{2j + \log(j-1)(j-\half) + \log(\sqrt{32\pi}) - (j-1)\log(e)}{\frac{j(j+1)}{2} + 1} \\
+    \end{align*}
+
+    The compression ratio of $y$,
+    \begin{align*}
+        \rho_{LZ}(y) &= \lim_{n \rightarrow \infty} \rho_{LZ}(y_n) = \lim_{j \rightarrow \infty} \rho_{LZ}(y_n)\\
+        & \leq \lim_{j \rightarrow \infty} \frac{2j + \log(j-1)(j-\half) + \log(\sqrt{32\pi}) - (j-1)\log(e)}{\frac{j(j+1)}{2} + 1}\\
+        &\text{using L'Hospitals's Rule for indeterminate form $\frac{\infty}{\infty}$}\\
+        &\leq \lim_{j \rightarrow \infty} \frac{2 + \log(j-1) + \frac{1}{j-1}(j-\half) + \log(e)}{\frac{2j+1}{2}}\\
+        &\text{using L'Hospitals's Rule again}\\
+        &\leq \lim_{j \rightarrow \infty} -\half\left(\frac{1}{j-1}\right)^2 + \frac{1}{j-1}\\
+        &\leq 0
+    \end{align*}
+
+    As the compressibility of any string is non-negative quantity and $\rho_{LZ}(y) \leq 0$, it implies that $\rho_{LZ}(y) = 0$.
+}
+
+
+\problem{
+    Let $X$ and $Y$ be random variables taking a finite number of values. Show that if $H(Y |X) = 0$, then $Y$ is a function of $X$. i.e. for each $x$ in the range of $X$, there is one and only one y with positive probability $p(y|x)$ in the range of $Y$ .
+}
+
+
+\solution{
+    The entropy of joint distribution $(X,Y)$ is $H(X,Y) = H(X) + H(Y|X)$. Let $\rangeX$ and $\rangeY$ are range of $X$ and $Y$ respectively.\newpar
+    Given $H(Y|X) = 0$, it implies that
+    \begin{align*}
+        \implies&& H(X,Y) &= H(X)\\
+        \implies&& -\sum_{x \in \rangeX} \sum_{y \in \rangeY} p(x,y)\log p(x,y) &= -\sum_{x \in \rangeX}p(x)\log p(x)\\
+        \implies&& -\sum_{x \in \rangeX} \sum_{y \in \rangeY} p(x,y)\log p(x,y) &= -\sum_{x \in \rangeX}\sum_{y \in \rangeY}p(x,y)\log p(x)\\
+    %\end{align*}
+    %Subtracting RHS on both the sides, and rearranging the logarithmic terms\\
+    %\begin{align*}
+        \implies&& -\sum_{x \in \rangeX} \sum_{y \in \rangeY} p(x,y)\log \left(\frac{p(x,y)}{p(x)} \right)&= 0 \tag{Substracting RHS on both the sides, and rearranging the logarithmic terms}\\
+        \implies&& -\sum_{x \in \rangeX} \sum_{y \in \rangeY} p(x) p(y|x)\log p(y|x)&= 0\\
+        \implies&& \sum_{x \in \rangeX} \sum_{y \in \rangeY} p(x) p(y|x)\log\left( \frac{1}{p(y|x)} \right)&= 0\\
+    \end{align*}
+
+    Each term of summand is product of non-negative terms, and as sum is $0$, each term of summand must be equal to $0$. Assuming $0\log(\infty)=0$.
+
+        $$p(x) p(y|x)\log\left( \frac{1}{p(y|x)} \right)= 0$$
+
+    %For each $(x,y) \in \rangeX \times \rangeY$ any one of the following is true:
+    \begin{enumerate}
+        \item if $p(x)=0$, then $x \not\in \rangeX$.
+        %\item $p(y|x)$ is $0$.
+		\item else, let assume $\rangeY=\{y_1, y_2,\ldots,y_n\}$,\newpar
+			for a fixed $x$, sum over all $y\in \rangeX$
+			$$\sum_{y\in\rangeX}p(x)p(y \mpipe x)\log p(y \mpipe x) = p(x)\ [\ p(y_1 \mpipe x)\log p(y_1 \mpipe x) + \ldots + p(y_n \mpipe x)\log p(y_n \mpipe x)] = 0$$
+			As $p(x) \not= 0$, the sum is zero only when only one $1 \leq k \leq n$ such that $p(y_k \mpipe x)=1$, otherwise the sum will be non-zero.
+			This implies that for each $x\in\rangeX$ there is one and only one $y\in\rangeY$[1].
+			\newpar
+			Let's consider the case that $\forall x\in\rangeX, \forall y\in\rangeY$,
+			$$ p(y \mpipe x)=0 \implies \frac{p(y \cap x)}{p(x)} = 0 \implies p(y \cap x)=0$$
+			This implies that $X$ and $Y$ are independent, so $H(Y \mpipe X) = H(Y) \not= 0$, if $Y \not= \phi$, which is in contradiction to the fact given in the porblem.
+        %\item $p(y|x)$ is 1.
+    \end{enumerate}
+
+	Therefore, by the case [1], $Y$ is a function of $X$.
+
+}
+
+
+\problem{
+    Let $X$ and $Y$ be a random variable with range $\{x_1, x_2 , \ldots, x_r \}$ and,
+    $\{y_1, y_2, \ldots, y_s\}$ respectively. Let $Z = X + Y$ . Then show that $H(Z|X) = H(Y|X).$
+}
+\solution{
+    %Let range of $X$, $Y$ and $Z$ is $\rangeX$, $\rangeY$ and $\rangeZ$ respectively.
+    The range of Z will be $\{x+y \mpipe  x \in X, y \in Y\}$, and its cardinality be $t \leq r+s$ .
+    $$p(Z=z) = \sum_{x=x_1}^{x_r}p(X=x)p(Y=z-x)$$
+
+    The conditional probability of $Z=z$ when $X=x$ is
+
+    $$p(Z=z\ | \ X=x) = \frac{p(X=x)p(Y=z-x)}{p(X=x)} = \frac{p(X=x,\ Y=y')}{p(X=x)} = p(Y=y'\ |\ X=x)$$
+    where $y'=z-x$. This hold because given $z$, once $x$ is fixed, there can be one and only one $y$ which may or may not be in $Y$ depending on whether $z=x+y$ or not\footnote{The uncertainity of finding $z$, once $x$ is fixed, only depends upon $y$.}. \newpar
+
+    \begin{align*}
+       &&\forall i \in [r],\ H(Z \mpipe X=x_i) &= \sum_{z=z_1}^{z_t} p(Z=z \mpipe X=x_i)\log p(Z=z \mpipe X=x_i) \\
+       \mimplies &=\sum_{y'=y_i}^{y_s} p(Y=y' \mpipe X=x_i)\log p(Y=y' \mpipe X=x_i)
+    \end{align*}
+
+    Taking the weighted sum of entropy $H(Z \mpipe X=x_i)$ over all $i \in [n]$
+
+    \begin{align*}
+        && H(Z \mpipe X) &= \sum_{x=x_1}^{x_r}p(X=x)H(Z \mpipe X=x)\\
+        \mimplies &= \sum_{x=x_1}^{x_r}p(X=x)\sum_{y'=y_i}^{y_s} p(Y=y' \mpipe X=x)\log p(Y=y' \mpipe X=x) \\
+		\mimplies &= \sum_{x=x_1}^{x_r} \sum_{y'=y_i}^{y_s} p(X=x)p(Y=y' \mpipe X=x)\log p(Y=y' \mpipe X=x) \\
+		\mimplies &= \sum_{x=x_1}^{x_r} \sum_{y'=y_i}^{y_s} p(X=x,\ Y=y') \log p(Y=y' \mpipe X=x) \\
+		\mimplies &= H(Y\mpipe X)
+    \end{align*}
+}
+
+\end{document}
