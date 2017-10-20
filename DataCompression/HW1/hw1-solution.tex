@@ -98,7 +98,27 @@
     where the $n^{th}$ row is the first $n$ bits of the sequence $x$ in Question 1, has finite-state compressibility 1.
 }
 \solution{
-	As we know that the Champernowne Constant, the sequence $x$, is a normal number. We have to give the reduction from Champernowne constant to given sequnce $y$ to prove that $y$ is a normal number.
+	We say  a binary sequence $s$ is normal if $\lim_{n \rightarrow \infty} \frac{N(w,s[1\ldots n])}{n}=\frac{1}{2^{|w|}},\ w \in \{0,1\}^*$.\newpar
+	As we know that the Champernowne Constant, the sequence $x$, is a normal number. We have to give the reduction from Champernowne constant to given sequnce $y$ to prove that $y$ is a normal number.\newpar
+
+	For large $n$ (not tending to $\infty$, but really large), $N(w,x[1\ldots n]) = \frac{n}{2^{|w|}} + \varepsilon$, where $\varepsilon$ is a constant.\newpar
+
+	Let $C[n]$ denote the $n^{th}$ row of the given sequence $y$. Considering only last $R+1$ rows, ($R$ is a constant), of the sequence's triangle for really large $n$.
+
+	\begin{align*}
+		N(w, C[n-R]) &= N(w, x[1\ldots n-R]) = \frac{n-R}{2^{|w|}} + \varepsilon_{n-R} \\
+		N(w, C[n-R+1]) &= N(w, x[1\ldots n-R+1]) = \frac{n-R+1}{2^{|w|}} + \varepsilon_{n-R+1} \\
+		&\vdots\\
+		N(w, C[n]) &= N(w, x[1\ldots n]) = \frac{n}{2^{|w|}} + \varepsilon_{n} \\
+		\sum_{i=0}^{R}N(w, C[n-i]) &= \frac{n-\frac{R(R+1)}{2}}{2^{|w|}} + \sum_{i=0}^{R}\varepsilon_{n-i} \simeq \frac{n-\frac{R(R+1)}{2}}{2^{|w|}} + R\varepsilon_{n-R},\ \text{as $\varepsilon_{n-R} \geq \varepsilon_{n-R+1} \geq \ldots >\varepsilon_{n}$} \\
+		&\text{calculating the fraction $\phi$ of occurance $w$ in last $R$ rows of triangle}\\
+		\phi &= \frac{N(w, C[n-R \ldots n])}{n-\frac{R(R-1)}{2}} = \frac{\frac{n-\frac{R(R+1)}{2}}{2^{|w|}} + R\varepsilon_{n-R}}{n-\frac{R(R-1)}{2}}
+		= \frac{1}{2^{|w|}} + \frac{R\varepsilon_{n-R}}{n-\frac{R(R-1)}{2}}\\
+		&\text{Calculating the limit for $n \rightarrow \infty$}\\
+		\lim_{n \rightarrow \infty} \phi &= \frac{1}{2^{|w|}} + \lim_{n \rightarrow \infty}\frac{R\varepsilon_{n-R}}{n-\frac{R(R-1)}{2}} = \frac{1}{2^{|w|}}\\
+	\end{align*}
+
+	As shown above $\lim_{n \rightarrow \infty} \frac{N(w,C[n-R \ldots n])}{n}=\frac{1}{2^{|w|}}$, the given sequence $y$ is normal.
 }
 
 \problem{
